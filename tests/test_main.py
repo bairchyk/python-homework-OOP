@@ -1,4 +1,5 @@
 import pytest
+from _pytest.capture import CaptureFixture
 
 from main import Category, Product
 
@@ -35,8 +36,13 @@ def test_init_product1(test_product: list[Product]) -> None:
 
 def test_init_category(test_category: Category, test_product: list[Product]) -> None:
     assert test_category.name == "Смартфоны"
-    assert test_category.description == ("Смартфоны для " "коммуникации и удобства жизни")
-    assert test_category.products == test_product
+    assert test_category.description == "Смартфоны для коммуникации и удобства жизни"
+    expected = (
+        "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт.\n"
+        "Iphone 15, 210000.0 руб. Остаток: 8 шт.\n"
+        "Xiaomi Redmi Note 11, 31000.0 руб. Остаток: 14 шт.\n"
+    )
+    assert test_category.products == expected
 
 
 def test_product_count(test_category: Category) -> None:
@@ -47,3 +53,53 @@ def test_category_count(test_category: Category) -> None:
     Category("Телевизоры", "Описание телевизоров", [])
 
     assert Category.category_count == 2
+
+
+def test_price_getter() -> None:
+    product = Product("Телефон", "Смартфон", 5000.0, 5)
+
+    assert product.price == 5000.0
+
+
+def test_price_setter_positive() -> None:
+    product = Product("Телефон", "Смартфон", 5000.0, 5)
+
+    product.price = 7000.0
+
+    assert product.price == 7000.0
+
+
+def test_price_setter_negative() -> None:
+    product = Product("Телефон", "Смартфон", 5000.0, 5)
+
+    product.price = -1000.0
+
+    assert product.price == 5000.0
+
+
+def test_price_setter_message(capsys: pytest.CaptureFixture[str]) -> None:
+    product = Product("Телефон", "Смартфон", 5000.0, 5)
+
+    product.price = -1000.0
+
+    captured = capsys.readouterr()
+    assert captured.out == "Цена не должна быть нулевая или отрицательная\n"
+
+
+def test_products_getter() -> None:
+    product = Product("Телефон", "Смартфон", 5000.0, 5)
+    category = Category("Электроника", "Техника", [product])
+
+    assert category.products == "Телефон, 5000.0 руб. Остаток: 5 шт.\n"
+
+
+def test_add_product() -> None:
+    category = Category("Электроника", "Техника", [])
+    product = Product("Телефон", "Смартфон", 5000.0, 5)
+
+    before_count = Category.product_count
+
+    category.add_product(product)
+
+    assert Category.product_count == before_count + 1
+    assert category.products == "Телефон, 5000.0 руб. Остаток: 5 шт.\n"

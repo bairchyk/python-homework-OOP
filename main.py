@@ -3,7 +3,7 @@ class Product:
 
     name: str
     description: str
-    price: float
+    __price: float
     quantity: int
 
     def __init__(
@@ -17,14 +17,35 @@ class Product:
         Задаем значения атрибутам экземпляра."""
         self.name = name
         self.description = description
-        self.price = price
+        self.__price = price
         self.quantity = quantity
+
+    @classmethod
+    def new_product(cls, emp_dict_products: dict) -> "Product":
+        name, description, price, quantity = (
+            emp_dict_products["name"],
+            emp_dict_products["description"],
+            emp_dict_products["price"],
+            emp_dict_products["quantity"],
+        )
+        return cls(name, description, price, quantity)
+
+    @property
+    def price(self) -> float:
+        return self.__price
+
+    @price.setter
+    def price(self, price: float) -> None:
+        if price > 0:
+            self.__price = price
+        else:
+            print("Цена не должна быть нулевая или отрицательная")
 
 
 class Category:
     name: str
     description: str
-    products: list[Product]
+    __products: list[Product]
     category_count = 0
     product_count = 0
 
@@ -38,12 +59,23 @@ class Category:
         Задаем значения атрибутам экземпляра."""
         self.name = name
         self.description = description
-        self.products = products
+        self.__products = products
         Category.category_count += 1
         Category.product_count += len(products)
 
+    def add_product(self, product: Product) -> None:
+        self.__products.append(product)
+        Category.product_count += 1
 
-if __name__ == "__main__": # pragma: no cover
+    @property
+    def products(self) -> str:
+        result = ""
+        for product in self.__products:
+            result += f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт.\n"
+        return result
+
+
+if __name__ == "__main__":  # pragma: no cover
     product1 = Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
     product2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
     product3 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
