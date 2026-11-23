@@ -1,5 +1,4 @@
 import pytest
-from _pytest.capture import CaptureFixture
 
 from main import Category, Product
 
@@ -103,3 +102,46 @@ def test_add_product() -> None:
 
     assert Category.product_count == before_count + 1
     assert category.products == "Телефон, 5000.0 руб. Остаток: 5 шт.\n"
+
+
+# Тестирование магического метода Product.__str__
+def test_product_str(test_product: list[Product]) -> None:
+    assert str(test_product[0]) == "Samsung Galaxy S23 Ultra, 180000.0 руб. Остаток: 5 шт."
+    assert str(test_product[1]) == "Iphone 15, 210000.0 руб. Остаток: 8 шт."
+    assert str(test_product[2]) == "Xiaomi Redmi Note 11, 31000.0 руб. Остаток: 14 шт."
+
+
+# Тестирование магического метода Category.__str__
+def test_category_str(test_category: Category) -> None:
+    assert str(test_category) == "Смартфоны, количество продуктов: 27 шт."
+
+
+# Тестирование пустой категории
+def test_category_str_empty() -> None:
+    category = Category("Пустая категория", "Описание", [])
+
+    assert str(category) == "Пустая категория, количество продуктов: 0 шт."
+
+
+# Тестирование магического метода Product.__add__
+def test_product_add(test_product: list[Product]) -> None:
+    assert test_product[0] + test_product[1] == 2580000.0
+    assert test_product[0] + test_product[2] == 1334000.0
+    assert test_product[1] + test_product[2] == 2114000.0
+
+
+# Тестирование сложения товара с нулевым остатком
+def test_product_add_zero_quantity() -> None:
+    product1 = Product("Телефон", "Смартфон", 10000.0, 0)
+    product2 = Product("Ноутбук", "Игровой", 50000.0, 2)
+
+    assert product1 + product2 == 100000.0
+
+
+# Проверка обновления количества товаров в категории
+def test_category_str_after_add(test_category: Category) -> None:
+    product = Product("Новый телефон", "Описание", 10000.0, 3)
+
+    test_category.add_product(product)
+
+    assert str(test_category) == "Смартфоны, количество продуктов: 30 шт."
